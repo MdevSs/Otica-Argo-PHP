@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Avaliar Produto</title>
+    <style>
+        /* Estilos para estrelas pra teste */
+        .star-rating {
+            direction: rtl; /* Sentido contrario da forma */
+            display: inline-flex;
+        }
+        .star-rating input {
+            display: none; /* Esconde os inputs de rádio */
+        }
+        .star-rating label {
+            font-size: 2em;
+            color: #ccc; /* Cor das estrelas não selecionadas */
+            cursor: pointer;
+        }
+        /* Modifica a cor das estrelas quando são selecionadas ou qnd o mouse passa por cima */
+        .star-rating input:checked ~ label,
+        .star-rating label:hover,
+        .star-rating label:hover ~ label {
+            color: #ffcc00; /* Cor para estrelas selecionadas */
+        }
+    </style>
+</head>
+<body>
+    <h2>Avaliar Produto</h2>
+
+    <form id="formAvaliacao" enctype="multipart/form-data" method="post" action="inserir_avaliacao.php">
+        <!-- Seção para escolher o produto -->
+        <label for="produtoSelect">Escolha o produto:</label>
+        <select id="produtoSelect" name="produtoId" required>
+            <option value="">Selecione um produto</option>
+        </select><br><br>
+
+        <!-- Seção de nota -->
+        <label for="nota">Nota (1 a 5 estrelas):</label>
+        <div class="star-rating">
+            
+            <input type="radio" id="estrela5" name="nota" value="5" required><label for="estrela5">★</label>
+            <input type="radio" id="estrela4" name="nota" value="4"><label for="estrela4">★</label>
+            <input type="radio" id="estrela3" name="nota" value="3"><label for="estrela3">★</label>
+            <input type="radio" id="estrela2" name="nota" value="2"><label for="estrela2">★</label>
+            <input type="radio" id="estrela1" name="nota" value="1"><label for="estrela1">★</label>
+        </div>
+        <br><br>
+
+        
+        <label for="comentario">Comentário:</label>
+        <textarea id="comentario" name="comentario" rows="4" cols="50" required></textarea><br><br>
+
+        <!-- anexar uma imagem-->
+        <label for="imagem">Imagem do produto (opcional):</label>
+        <input type="file" id="imagem" name="imagem" accept="image/jpeg, image/png"><br><br>
+
+        <button type="submit">Enviar Avaliação</button>
+    </form>
+
+    <br><br>
+    <a href="consultar_avaliacoes.php"><button>Ver Avaliações</button></a>
+
+    <script>
+        // Função que carrega os produtos disponíveis na página
+        const produtoSelect = document.getElementById('produtoSelect');
+
+        function carregarProdutos() {
+            fetch('consultar_produtos.php') // Fazendo a requisição para o servidor
+                .then(response => response.json()) 
+                .then(data => {
+                    data.forEach(produto => {
+                        // select para os produtos de acordo com o id
+                        const option = document.createElement('option');
+                        option.value = produto.id;
+                        option.textContent = produto.nome;
+                        produtoSelect.appendChild(option);
+                    });
+                })
+                .catch(error => console.error('Erro ao carregar os produtos:', error)); 
+        }
+
+        // Quando carregado, chama a função para carregar os produtos
+        document.addEventListener('DOMContentLoaded', carregarProdutos);
+    </script>
+</body>
+</html>
