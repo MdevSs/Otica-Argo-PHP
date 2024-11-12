@@ -1,61 +1,81 @@
 <?php
 session_start();
-if (isset($_POST['txtNome']) && isset($_POST['txtSenha'])) {
- 
+
+if($_SERVER['REQUEST_METHOD'] === 'POST'){
+header('Content-Type: application/json'); // Define o tipo de resposta como JSON
+$response = [
+    "autenticado" => false,
+    "sessionId" => null,
+    "userDados" => null
+];
+
+if (isset($_POST['txtEmail']) && isset($_POST['txtSenha'])) {
+
     // Conectar ao banco de dados
     $oServidor = "localhost";
     $oUsuario = "DesenvolvedorB";
     $oSenha = "B1scoito!";
     $oBanco = "PRJ2DSB";
 
+
     $oCon = new mysqli($oServidor, $oUsuario, $oSenha, $oBanco);
 
-    // Verificar a conexão
-    if (!$oCon) {
-        die("Falha na conexão: " . mysqli_connect_error());
+    // Verifica a conexão
+    if ($oCon->connect_error) {
+        $response['error'] = "Falha na conexão: " . $oCon->connect_error;
+        echo json_encode($response);
+        exit();
     }
 
-    // Obter dados do formulário
-    $nome =  $_POST['txtNome'];
-    $senha =  $_POST['txtSenha'];
+    // Dados do formulário
+    $email = $_POST['txtEmail'];
+    $senha = md5($_POST['txtSenha']); //Convertendo para MD5
 
-    // Preparar a consulta para evitar SQL Injection
+    // Prepara a consulta para evitar SQL Injection
     $stmt = $oCon->prepare("
-        SELECT USRNOME, USRNIVELACESSO 
+        SELECT USREMAIL, USRNIVELACESSO 
         FROM usuarios
-        WHERE USRNOME = ?
-        AND USRSENHA = ?
+        WHERE USREMAIL = ? AND USRSENHA = ?
     ");
 
-    // Verificar se a preparação foi bem-sucedida
+    // Verifica se a preparação deu certo
     if ($stmt === false) {
-        die("Erro na preparação da consulta: " . $oCon->error);
+        $response['error'] = "Erro na preparação da consulta: " . $oCon->error;
+        echo json_encode($response);
+        exit();
     }
 
-    // Executar a consulta
-    $stmt->bind_param('ss', $nome, $senha); // 'ss' corresponde a dois parâmetros de string
+    // Executa a consulta
+    $stmt->bind_param('ss', $email, $senha); // 'ss' corresponde a dois parâmetros de string
     $stmt->execute();
     $result = $stmt->get_result();
 
-    // Verificar se o usuário foi encontrado
+    // Verifica se o usuário foi encontrado
     if ($oRow = $result->fetch_assoc()) {
-        $_SESSION['USRNOME'] = $oRow['USRNOME'];
-        $_SESSION['USRNIVELACESSO '] = $oRow['USRNIVELACESSO '];
-
-        // Verificar o nível do usuário
-        if ($oRow['USRNIVELACESSO'] == 1 || $oRow['USRNIVELACESSO'] == 2) { // Supondo que o nível 1 é para acesso ao menu funcionario
-            header('Location: caminho_menufuncionario');
-            exit();
-        } else { // Se o nivel for qualquer um diferente de 1 ou 2
-            header('Location: caminho_menucliente');
-        }
-    } else { // Se o usuario nao for encontrado, ele vai ser direcionado ao cadastro
-        header('Location: cadastro.php');
+        $_SESSION['USREMAIL'] = $oRow['USREMAIL'];
+        $_SESSION['USRNIVELACESSO'] = $oRow['USRNIVELACESSO'];
+        
+        // Define o session ID e prepara a resposta JSON
+        $response['autenticado'] = true;
+        $response['sessionId'] = session_id();
+        $selectStmt = $oCon->prepare("SELECT `USRID`, `USRNOME`, `USREMAIL`, `USRCPF`, `USRDTNASC`, `USRNIVELACESSO`, `USRBLOQUEADO` FROM `usuarios` WHERE USREMAIL = ?");
+        $selectStmt->bind_param('s', $email);
+        $selectStmt->execute();
+        $result = $selectStmt->get_result();
+        $response['userDados'] = $result->fetch_assoc();
+   
+  }
+  else {
+        $response['error'] = "Usuário não encontrado.";
     }
-
-    // Fechar a conexão
+    // Fecha a conexão
     $stmt->close();
-    mysqli_close($oCon);
+    $oCon->close();
+}
+
+// Retorna a resposta JSON
+echo json_encode($response);
+exit();
 }
 ?>
 
@@ -69,8 +89,8 @@ if (isset($_POST['txtNome']) && isset($_POST['txtSenha'])) {
 <body>
 <form action="" method="POST">
             <label>
-                <span>Nome ou Email</span>
-                <input type="text" name="txtNome" required>
+                <span>Email</span>
+                <input type="email" name="txtEmail" required>
             </label>
 
             <label>

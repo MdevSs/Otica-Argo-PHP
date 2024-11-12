@@ -1,52 +1,75 @@
 <?php
+if($_SERVER['REQUEST_METHOD'] === 'POST'){
+header('Content-Type: application/json');
+
 // Verificar se o formulário foi enviado
 if (isset($_POST['txtNome']) && isset($_POST['txtCPF']) && isset($_POST['txtEmail']) && isset($_POST['txtSenha'])) {
- 
-
-    // Conectar ao banco de dados
+    // Conecta ao banco de dados
     $oServidor = "localhost";
     $oUsuario = "DesenvolvedorB";
     $oSenha = "B1scoito!";
     $oBanco = "PRJ2DSB";
 
+
     $oCon = new mysqli($oServidor, $oUsuario, $oSenha, $oBanco);
 
-    // Verificar a conexão
-    if (!$oCon) {
-        die("Falha na conexão: " . mysqli_connect_error());
+    // Verifica a conexão
+    if ($oCon->connect_error) {
+        echo json_encode(["status" => "erro", "mensagem" => "Falha na conexão: " . $oCon->connect_error]);
+        exit();
     }
 
-       // Obter dados do formulário
-    $nome =  $_POST['txtNome'];
-    $cpf =   $_POST['txtCPF'];
+    // Dados do formulário
+    $nome = $_POST['txtNome'];
+    $cpf = $_POST['txtCPF'];
     $email = $_POST['txtEmail'];
     $nasc = $_POST['dtNasc'];
-    $senha = $_POST['txtSenha'];
+    $senha = md5($_POST['txtSenha']); // Criptografa a senha com MD5
 
-    // Preparar a consulta para inserção de dados
+    // Prepara a consulta para inserção de dados
     $stmt = $oCon->prepare("
         INSERT INTO usuarios (USRNOME, USRCPF, USREMAIL, USRSENHA, USRDTNASC) 
         VALUES (?, ?, ?, ?, ?)
     ");
 
-    // Verificar se a preparação foi bem-sucedida
+    // Verifica se a preparação foi bem-sucedida
     if ($stmt === false) {
-        die("Erro na preparação da consulta: " . $oCon->error);
+        echo json_encode(["status" => "erro", "mensagem" => "Erro na preparação da consulta: " . $oCon->error]);
+        exit();
     }
 
     // Executar a consulta
     $stmt->bind_param('sssss', $nome, $cpf, $email, $senha, $nasc);
     if ($stmt->execute()) {
-        echo "Cadastro realizado com sucesso!";
+        // Selecionar todos os dados do usuário cadastrado
+        $selectStmt = $oCon->prepare("SELECT `USRID`, `USRNOME`, `USREMAIL`, `USRCPF`, `USRDTNASC`, `USRNIVELACESSO`, `USRBLOQUEADO` FROM `usuarios` WHERE USREMAIL = ?");
+        $selectStmt->bind_param('s', $email);
+        $selectStmt->execute();
+        $result = $selectStmt->get_result();
+        $userData = $result->fetch_assoc();
+
+        echo json_encode([
+            "status" => "sucesso", 
+            "mensagem" => "Cadastro realizado com sucesso!",
+            "dados_usuario" => $userData
+        ]);
+
+        $selectStmt->close();
     } else {
-        echo "Erro ao cadastrar: " . $stmt->error;
+        echo json_encode(["status" => "erro", "mensagem" => "Erro ao cadastrar: " . $stmt->error]);
     }
 
     // Fechar a conexão
     $stmt->close();
-    mysqli_close($oCon);
+    $oCon->close();
+} else {
+    echo json_encode(["status" => "erro", "mensagem" => "Dados incompletos."]);
+}
+exit();
 }
 ?>
+
+
 
 <!DOCTYPE html>
 <html lang="pt-br">
