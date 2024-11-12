@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Consulta Dinâmica</title>
+</head>
+<body>
+    <header><input type="search" placeholder="Pesquise aqui"></header>
+    <main>
+        <div class="content">
+
+        </div>
+    </main>
+</body>
+
+<script>
+    let content = document.querySelector('.content');
+    console.log(content);
+    let pesquisa = document.querySelector('header>input')
+    // 
+    
+    window.addEventListener('load', (e)=>{
+        fetch("consulta.php", 
+            {
+                method: 'POST',
+                body: JSON.stringify(
+                    {
+                        tipo : 'produto', 
+                        // consulta: 1,
+                        // search: ___
+                    }
+                ),
+                headers: {"Content-Type": "application/json"}
+            }   
+        )
+        .then(Response => Response.json())
+        .then(data => console.log(data));
+    });
+
+    // pesquisa.addEventListener('keypress', (e)=>{
+    //     if(e.key == 'Enter' || (e.keyCode == 13))
+    //     {
+    //         fetch('consulta.php',
+    //         {
+    //             method: 'POST',
+    //             body: JSON.stringify({pagina: 'pesquisa', consulta: e.target.value}),
+    //             headers: {"Content-Type": "application/json"}
+    //         })
+    //         .then(Response => Response.json())
+    //         .then(data => console.log(data))
+
+    //     }
+    // })
+
+</script>
+
+</html>
