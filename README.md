@@ -21,4 +21,12 @@ Downloads:
 - [**Avaliação** Download](https://github.com/MdevSs/Otica-Argo-PHP/raw/main/Avalia%C3%A7%C3%A3o.zip)
 
 
-- [**Login e Cadastro** Download](https://github.com/MdevSs/Otica-Argo-PHP/blob/main/login%26cadastro.rar)
+- [**Login e Cadastro** Download](https://github.com/MdevSs/Otica-Argo-PHP/raw/main/login%26cadastro.rar)
+
+
+- [**Registrar** Download](https://github.com/MdevSs/Otica-Argo-PHP/raw/main/Registrar.zip)
+
+
+- [**Consultar** Download](https://github.com/MdevSs/Otica-Argo-PHP/raw/main/Consultar.zip)
+
+  
