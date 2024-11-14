@@ -1,0 +1,53 @@
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Teste de Registro</title>
+    </head>
+    <body>
+        <form id="registroForm" method="POST">
+            <h1>CAMPOS E PÁGINA TESTE!!!</h1>
+            <input type="text" name="USRNOME" id="USRNOME">
+            <input type="number" name="USRCPF" id="USRCPF">
+            <input type="date" name="USRDTNASC" id="USRDTNASC">
+            <input type="password" name="USRSENHA" id="USRSENHA">
+            <input type="email" name="USREMAIL" id="USREMAIL">
+            <input type="submit" value="submit">
+        </form>
+
+
+        <script>
+            document.getElementById('registroForm').addEventListener('submit', function(event) {
+                event.preventDefault();
+                
+                const nome = document.getElementById('USRNOME').value;
+                const cpf = document.getElementById('USRCPF').value;
+                const tempo = document.getElementById('USRDTNASC').value;
+                const senha = document.getElementById('USRSENHA').value;
+                const mail = document.getElementById('USREMAIL').value;
+
+                const formData = {
+                    TABELA: "USUARIOS",
+                    USRNOME: nome,
+                    USRDTNASC: tempo,
+                    USRCPF: cpf,
+                    USRSENHA: senha,
+                    USREMAIL: mail
+                };
+
+                fetch('InsertRec.php', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(formData)
+                })
+                .then(response => response.json())
+                .then(data => console.log(data))
+                .catch(error => {
+                    console.error('Erro ao enviar dados:', error);
+                });
+            });
+        </script> 
+    </body>
+</html>
