@@ -44,7 +44,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         // Dados do formulário
         $email = $inputData['txtEmail'];
-        $senha = md5($inputData['txtSenha']); // Convertendo para MD5
+        $senha = md5($inputData['txtSenha']); // Convertendo para MD5 (não recomendado, use password_hash)
 
         // Prepara a consulta para evitar SQL Injection
         $stmt = $oCon->prepare("
@@ -80,17 +80,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 FROM `usuarios`
                 WHERE USREMAIL = ?
             ");
-            $selectStmt->bind_param('s', $email);
-            $selectStmt->execute();
-            $result = $selectStmt->get_result();
-            $response['userDados'] = $result->fetch_assoc();
+
+            if ($selectStmt === false) {
+                $response['error'] = "Erro na preparação da consulta para buscar os dados completos: " . $oCon->error;
+            } else {
+                $selectStmt->bind_param('s', $email);
+                $selectStmt->execute();
+                $result = $selectStmt->get_result();
+
+                if ($result) {
+                    $response['userDados'] = $result->fetch_assoc();
+                } else {
+                    $response['error'] = "Erro ao obter dados do usuário.";
+                }
+                $selectStmt->close(); // Fecha apenas se foi preparado corretamente
+            }
         } else {
             $response['error'] = "Usuário não encontrado.";
         }
 
         // Fecha as conexões
         $stmt->close();
-        $selectStmt->close();
         $oCon->close();
     } else {
         $response['error'] = "Dados de email ou senha não fornecidos.";

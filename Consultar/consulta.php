@@ -43,11 +43,11 @@ switch($oDados['tipo']) {
     break;
 
     case 'home':
-        $sql1 = "SELECT PRDID 'ID', PRDNOME 'NOME', PRDVLRDESC 'DESCONTO' FROM produtos WHERE PRDDESC = 1 ";
+        $sql1 = "SELECT PRDID 'ID', PRDNOME 'NOME', PRDVLRUNIT 'VALOR', PRDVLRDESC 'DESCONTO' FROM produtos WHERE PRDDESC = 1";
         $oRes = mysqli_query($oCon, $sql1);
         $oQuery1 = mysqli_fetch_all($oRes, MYSQLI_ASSOC);
         
-        $sql2 = "SELECT PRDID 'ID', PRDNOME 'NOME', PRDVLRUNIT 'VALOR FROM produtos WHERE PRDDESC = 0 ";
+        $sql2 = "SELECT PRDID 'ID', PRDNOME 'NOME', PRDVLRUNIT 'VALOR' FROM produtos WHERE PRDDESC = 0";
         $oRes = mysqli_query($oCon, $sql2);
         $oQuery2 = mysqli_fetch_all($oRes, MYSQLI_ASSOC);
 
@@ -56,6 +56,7 @@ switch($oDados['tipo']) {
             'produtos' => $oQuery2
         ];
 
+        echo json_encode($oRes);
         // var_dump($oRes);
     break;
         
@@ -456,9 +457,6 @@ switch($oDados['tipo']) {
         $oRes = mysqli_fetch_all($oRes, MYSQLI_ASSOC);
 
         echo json_encode($oRes);
-
-
-
     break;
 
     case 'cor':
