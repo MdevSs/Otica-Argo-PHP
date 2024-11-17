@@ -1,15 +1,42 @@
 <?php
-session_start();
+header('Access-Control-Allow-Origin: *');
+header('Access-Control-Allow-Methods: GET, POST, OPTIONS');
+header('Access-Control-Allow-Headers: Content-Type, Authorization');
+header('Content-Type: application/json');
 
-// Verifica se tem login, se não, manda login.php
-if (!isset($_SESSION['userId'])) {
-    header('Location: login.php');
+// Responde a requisições OPTIONS para CORS
+if ($_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
+    http_response_code(200);
     exit();
 }
 
-require 'conexao.php'; 
+require 'conexao.php';
 
-// classificação da qualidade
+// Verifica se a solicitação é POST
+if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+    echo json_encode([
+        "error" => true,
+        "message" => "Método não permitido. Use POST."
+    ]);
+    exit();
+}
+
+// Obtém os dados enviados no corpo da solicitação
+$dados = json_decode(file_get_contents('php://input'), true);
+
+// Verifica se o produtoId foi enviado
+if (!isset($dados['produtoId'])) {
+    echo json_encode([
+        "error" => true,
+        "message" => "O parâmetro 'produtoId' é obrigatório no corpo da solicitação."
+    ]);
+    exit();
+}
+
+// Sanitiza o ID do produto
+$produtoId = intval($dados['produtoId']);
+
+// Consulta as avaliações para o produto específico
 $stmt = $oCon->prepare("
     SELECT a.AVACLIENTE, a.AVAPRODUTO, a.AVANOTA, a.AVACOMENTARIOS, p.PRDNOME, u.USRNOME,
            CASE
@@ -21,20 +48,22 @@ $stmt = $oCon->prepare("
     FROM avaliacoes a
     JOIN produtos p ON a.AVAPRODUTO = p.PRDID
     JOIN usuarios u ON a.AVACLIENTE = u.USRID
+    WHERE p.PRDID = ?
 ");
+$stmt->bind_param('i', $produtoId);
 $stmt->execute();
 $result = $stmt->get_result();
 
 $avaliacoes = [];
 $img_path = 'img/';  // Pasta onde as imagens estão localizadas
-$default_image = 'no_image.png';  // Caminho da imagem padrão (isso se n tiver imagem) "no_image.png"
+$default_image = 'no_image.png';  // Caminho da imagem padrão
 
 // Loop que armazena todas as avaliações na variável $avaliacoes
 while ($row = $result->fetch_assoc()) {
     // Caminho da imagem associada
     $imagem_caminho = $img_path . $row['AVACLIENTE'] . '_' . $row['AVAPRODUTO'] . '.jpg';
     
-    // Verifica se a imagem existe, se não, usa a imagem padrão (caso sem imagem)
+    // Verifica se a imagem existe, se não, usa a imagem padrão
     $avaliacoes[] = [
         'usuario' => $row['USRNOME'],
         'produto' => $row['PRDNOME'],
@@ -45,53 +74,19 @@ while ($row = $result->fetch_assoc()) {
     ];
 }
 
+// Verifica se há avaliações encontradas
+if (empty($avaliacoes)) {
+    echo json_encode([
+        "error" => true,
+        "message" => "Nenhuma avaliação encontrada para o produto especificado."
+    ]);
+} else {
+    echo json_encode([
+        "error" => false,
+        "avaliacoes" => $avaliacoes
+    ]);
+}
+
 $stmt->close();
 mysqli_close($oCon);
 ?>
-
-<!DOCTYPE html>
-<html lang="pt-br">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Avaliações</title>
-</head>
-<body>
-    <h2>Avaliações dos Produtos</h2>
-    
-    <?php if (count($avaliacoes) > 0): ?>
-        <table border="1">
-            <thead>
-                <tr>
-                    <th>Usuário</th>
-                    <th>Produto</th>
-                    <th>Nota</th>
-                    <th>Comentário</th>
-                    <th>Qualidade do Produto</th>
-                    <th>Imagem</th>
-                </tr>
-            </thead>
-            <tbody>
-                <?php foreach ($avaliacoes as $avaliacao): ?>
-                    <tr>
-                        <td><?php echo htmlspecialchars($avaliacao['usuario']); ?></td>
-                        <td><?php echo htmlspecialchars($avaliacao['produto']); ?></td>
-                        <td><?php echo str_repeat('★', $avaliacao['nota']); ?></td>
-                        <td><?php echo htmlspecialchars($avaliacao['comentario']); ?></td>
-                        <td><?php echo htmlspecialchars($avaliacao['qualidade_produto']); ?></td>
-                        <td><img src="<?php echo htmlspecialchars($avaliacao['imagem']); ?>" alt="Imagem do produto" width="100"></td>
-                    </tr>
-                <?php endforeach; ?>
-            </tbody>
-        </table>
-    <?php else: ?>
-        <p>Nenhuma avaliação encontrada.</p>
-    <?php endif; ?>
-
-    <br>
-    <a href="index.htm">
-        <button>Continuar avaliando</button>
-    </a>
-
-</body>
-</html>
