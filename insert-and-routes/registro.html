@@ -1,0 +1,50 @@
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Teste de Registro</title>
+    </head>
+    <body>
+        <form id="registroForm" method="POST" enctype="multipart/form-data">
+            <h1>CAMPOS E PÁGINA TESTE!!!</h1>
+            nome:
+            <input type="text" name="PRDNOME" id="PRDNOME">
+            valorUnitario:
+            <input type="number" name="PRDVLRUNIT" id="PRDVLRUNIT">
+            ativo:
+            <input type="number" name="PRDATIVO" id="PRDATIVO">
+            imagem:
+            <input type="file" name="PRDIMAGE" id="PRDIMAGE">
+            <input type="submit" value="submit">
+        </form>
+
+
+        <script>
+            document.getElementById('registroForm').addEventListener('submit', function(event) {
+                event.preventDefault();
+                
+                const nome = document.getElementById('PRDNOME').value;
+                const valorunidade = document.getElementById('PRDVLRUNIT').value;
+                const ativo = document.getElementById('PRDATIVO').value;
+                const imagem = document.getElementById('PRDIMAGE').files[0];
+
+                const formData = new FormData(); 
+                formData.append('TABELA', 'produtos');
+                formData.append('PRDNOME', nome);
+                formData.append('PRDVLRUNIT', valorunidade);
+                formData.append('PRDATIVO', ativo);
+                formData.append('PRDIMAGE', imagem); 
+                formData.append('PRDMARCA', 1);
+                formData.append('PRDCOR', 2);
+
+
+                fetch('uploadImg.php', {
+                    method: 'POST',
+                    body: formData,
+                })
+                .then(response => response.json())
+                .then(data => console.log(data));
+            });
+        </script> 
+    </body>
+</html>

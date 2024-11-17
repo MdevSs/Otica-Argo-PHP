@@ -1,5 +1,15 @@
 <?php
-header("Acess-Control-Allow-Origin:: *");
+header('Access-Control-Allow-Origin: *');
+header('Access-Control-Allow-Methods: GET, POST, OPTIONS');
+header('Access-Control-Allow-Headers: Content-Type, Authorization');
+header('Content-Type: application/json');
+
+// Responde a requisições OPTIONS para CORS
+if ($_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
+    http_response_code(200);
+    exit();
+}
+
 //PEGA OS VALORES PASSADOS PELO CORPO DA REQUISIÇÃO
 $jsonData = file_get_contents('php://input');
 
@@ -15,10 +25,10 @@ switch($oDados['tipo']) {
             $c = $oDados['consulta'];
 
             if(gettype($c) != "array" || gettype($c) != "object" && $c != '' || !empty($c)) {
-                $cSQL = "SELECT USRNOME 'USUARIO', PRDNOME 'PRODUTO', AVANOTA 'NOTA', GROUP_CONCAT(AVACOMENTARIOS, ', ') 'COMENTARIOS' FROM AVALIACOES INNER JOIN USUARIOS ON AVACLIENTE = USRID INNER JOIN PRODUTOS ON AVAPRODUTO = PRDID WHERE USRNOME = $c ";
+                $cSQL = "SELECT USRNOME 'USUARIO', PRDNOME 'PRODUTO', PRDIMAGE 'IMGPATH', AVANOTA 'NOTA', GROUP_CONCAT(AVACOMENTARIOS, ', ') 'COMENTARIOS' FROM AVALIACOES INNER JOIN USUARIOS ON AVACLIENTE = USRID INNER JOIN PRODUTOS ON AVAPRODUTO = PRDID WHERE USRNOME = $c ";
             }
         }else {
-            $cSQL = "SELECT USRNOME 'USUARIO', PRDNOME 'PRODUTO', AVANOTA 'NOTA', GROUP_CONCAT(AVACOMENTARIOS, ', ') 'COMENTARIOS' FROM AVALIACOES INNER JOIN USUARIOS ON AVACLIENTE = USRID INNER JOIN PRODUTOS ON AVAPRODUTO = PRDID WHERE 1 = 1";  
+            $cSQL = "SELECT USRNOME 'USUARIO', PRDNOME 'PRODUTO', PRDIMAGE 'IMGPATH', AVANOTA 'NOTA', GROUP_CONCAT(AVACOMENTARIOS, ', ') 'COMENTARIOS' FROM AVALIACOES INNER JOIN USUARIOS ON AVACLIENTE = USRID INNER JOIN PRODUTOS ON AVAPRODUTO = PRDID WHERE 1 = 1";  
         }
 
         if(isset($oDados['search'])) {
@@ -43,11 +53,11 @@ switch($oDados['tipo']) {
     break;
 
     case 'home':
-        $sql1 = "SELECT PRDID 'ID', PRDNOME 'NOME', PRDVLRUNIT 'VALOR', PRDVLRDESC 'DESCONTO' FROM produtos WHERE PRDDESC = 1";
+        $sql1 = "SELECT PRDID 'ID', PRDNOME 'NOME', PRDVLRUNIT 'VALOR', PRDVLRDESC 'DESCONTO', PRDIMAGE 'IMGPATH' FROM produtos WHERE PRDDESC = 1";
         $oRes = mysqli_query($oCon, $sql1);
         $oQuery1 = mysqli_fetch_all($oRes, MYSQLI_ASSOC);
         
-        $sql2 = "SELECT PRDID 'ID', PRDNOME 'NOME', PRDVLRUNIT 'VALOR' FROM produtos WHERE PRDDESC = 0";
+        $sql2 = "SELECT PRDID 'ID', PRDNOME 'NOME', PRDVLRUNIT 'VALOR', PRDIMAGE 'IMGPATH' FROM produtos WHERE PRDDESC = 0";
         $oRes = mysqli_query($oCon, $sql2);
         $oQuery2 = mysqli_fetch_all($oRes, MYSQLI_ASSOC);
 
@@ -167,6 +177,45 @@ switch($oDados['tipo']) {
 
         echo json_encode($oRes);
     break;
+
+    case 'produto-id':
+        $produtoId = intval($oDados['consulta']); // converte para inteiro para evitar essi-qui-eli injection
+        $cSQL = "SELECT 
+                PRDID AS 'ID', 
+                PRDNOME AS 'NOME', 
+                PRDDESCRICAO AS 'DESCRICAO', 
+                PRDVLRUNIT AS 'VALOR', 
+                PRDVLRDESC AS 'DESCONTO', 
+                PRDIMAGE AS 'IMGPATH',
+                PRDMARCA AS 'MARCA',
+                PRDCOR AS 'COR'
+                FROM produtos 
+                WHERE PRDID = $produtoId";
+    
+        $oRes = mysqli_query($oCon, $cSQL);
+    
+        if (!$oRes) {
+        // Erro na execução da consulta
+            echo json_encode([
+                "error" => true,
+                "message" => "Erro ao executar a consulta.",
+            ]);
+            exit;
+        }
+    
+            $oRes = mysqli_fetch_all($oRes, MYSQLI_ASSOC);
+        
+        if (empty($oRes)) {
+            // Produto não encontrado
+            echo json_encode([
+                "error" => true,
+                "message" => "Produto não encontrado.",
+            ]);
+            exit;
+        }
+    
+        echo json_encode($oRes);
+        break;
     
     case 'produto':
         
@@ -187,6 +236,7 @@ switch($oDados['tipo']) {
                 $sql = "SELECT DISTINCT 
                     PRDID 'ID', 
                     PRDNOME 'NOME', 
+                    PRDIMAGE 'IMGPATH',
                     PRDDESCRICAO 'DESCRICAO',  
                     GROUP_CONCAT(CTGNOME SEPARATOR ', ') 'CATEGORIAS',  
                     PRDVLRUNIT 'VALOR', 
@@ -205,6 +255,7 @@ switch($oDados['tipo']) {
 
                 $sql = "SELECT DISTINCT 
                 PRDID 'ID', 
+                PRDIMAGE 'IMGPATH',
                 PRDNOME 'NOME', 
                 PRDDESCRICAO 'DESCRICAO',  
                 GROUP_CONCAT(CTGNOME SEPARATOR ', ') 'CATEGORIAS',  
@@ -416,10 +467,10 @@ switch($oDados['tipo']) {
         //SELECT USRNOME NOME, PRDNOME PRODUTO, PRDVLRUNIT VALOR FROM wishlist INNER JOIN usuarios ON WL_CLIENTE = USRID INNER JOIN produtos ON WL_PRODUTO = PRDID
 
         if($oDados['consulta'] == '' || !isset($oDados['consulta']) || empty($oDados['consulta'])) {
-            $sql = "SELECT USRNOME NOME, PRDNOME PRODUTO, PRDVLRUNIT VALOR FROM `wishlist` INNER JOIN usuarios ON WL_CLIENTE = USRID INNER JOIN produtos ON WL_PRODUTO = PRDID WHERE 1=1 ";
+            $sql = "SELECT USRNOME 'NOME', PRDNOME 'PRODUTO', PRDIMAGE 'IMGPATH', PRDVLRUNIT 'VALOR' FROM `wishlist` INNER JOIN usuarios ON WL_CLIENTE = USRID INNER JOIN produtos ON WL_PRODUTO = PRDID WHERE 1=1 ";
         }
         else {
-            $sql = "SELECT PRDNOME PRODUTO, PRDVLRUNIT VALOR FROM `wishlist` INNER JOIN usuarios ON WL_CLIENTE = " . $oDados['consulta'] . " INNER JOIN produtos ON WL_PRODUTO = PRDID WHERE 1=1 ";
+            $sql = "SELECT PRDNOME 'PRODUTO', PRDIMAGE 'IMGPATH', PRDVLRUNIT 'VALOR' FROM `wishlist` INNER JOIN usuarios ON WL_CLIENTE = " . $oDados['consulta'] . " INNER JOIN produtos ON WL_PRODUTO = PRDID WHERE 1=1 ";
         }
     
         if(isset($oDados['search'])) {
