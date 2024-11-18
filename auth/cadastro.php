@@ -41,8 +41,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         // Prepara a consulta para inserção de dados
         $stmt = $oCon->prepare("
-            INSERT INTO usuarios (USRNOME, USRCPF, USREMAIL, USRSENHA, USRDTNASC) 
-            VALUES (?, ?, ?, ?, ?)
+            INSERT INTO usuarios (USRNOME, USRCPF, USREMAIL, USRSENHA, USRDTNASC, USRNIVELACESSO) 
+            VALUES (?, ?, ?, ?, ?, 3)
         ");
 
         // Verifica se a preparação foi bem-sucedida
