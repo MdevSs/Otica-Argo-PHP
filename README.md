@@ -18,15 +18,16 @@ php -S localhost:8080
 
 Downloads:
 
-- [**Avaliação** Download](https://github.com/MdevSs/Otica-Argo-PHP/raw/main/Avalia%C3%A7%C3%A3o.zip)
+- [**Avaliação** Download](https://github.com/MdevSs/Otica-Argo-PHP/raw/main/avaliation.zip)
 
-
-- [**Login e Cadastro** Download](https://github.com/MdevSs/Otica-Argo-PHP/raw/main/login%26cadastro.rar)
-
+- [**Login e Cadastro** Download](https://github.com/MdevSs/Otica-Argo-PHP/raw/main/auth.zip)
 
 - [**Registrar** Download](https://github.com/MdevSs/Otica-Argo-PHP/raw/main/Registrar.zip)
 
+- [**Consultar** Download](https://github.com/MdevSs/Otica-Argo-PHP/raw/main/consulta/consulta.php)
 
-- [**Consultar** Download](https://github.com/MdevSs/Otica-Argo-PHP/raw/main/Consultar.zip)
+- [**Update** Download](https://github.com/MdevSs/Otica-Argo-PHP/raw/main/Update/update.php)
+
+- [**Salva Imagem** Download](https://github.com/MdevSs/Otica-Argo-PHP/raw/main/Insert_e_routes.zip)
 
   
