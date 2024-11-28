@@ -148,13 +148,11 @@ switch($oDados['tipo']) {
             $c = $oDados['consulta'];
 
             if(gettype($c) != "array" || gettype($c) != "object" && $c != '' || !empty($c)) {
-
                 $sql = "SELECT filho.CTGID, pai.CTGNOME AS 'CATEGORIA PAI', filho.CTGNOME AS 'CATEGORIA' FROM `CATEGORIAS` as filho INNER JOIN CATEGORIAS AS pai ON pai.CTGID = filho.CTGSUBID WHERE CTGID LIKE '%$c%' OR CTGNOME LIKE '%$c%' ";
-
             }
         }else {
 
-            $sql = "SELECT filho.CTGID, pai.CTGNOME AS 'CATEGORIA PAI', filho.CTGNOME AS 'CATEGORIA' FROM `CATEGORIAS` as filho INNER JOIN CATEGORIAS AS pai ON pai.CTGID = filho.CTGSUBID WHERE 1=1 ";          
+            $sql = "SELECT filho.CTGID, pai.CTGNOME AS 'CATEGORIA PAI', filho.CTGNOME AS 'CATEGORIA' FROM `CATEGORIAS` as filho INNER JOIN CATEGORIAS AS pai ON pai.CTGID = filho.CTGSUBID WHERE 1=1";          
 
         }
 
@@ -168,8 +166,6 @@ switch($oDados['tipo']) {
              OR filho.CTGSUBID LIKE '%$q%' " ;
             
         }
-
-        echo $sql;
 
         $oRes = mysqli_query($oCon, $sql);
         
