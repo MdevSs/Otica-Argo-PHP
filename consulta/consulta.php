@@ -79,7 +79,7 @@ switch($oDados['tipo']) {
 
     //     echo json_encode($oRes);
     
-    // break;
+    // break
 
     case 'carrinho':
         // Codigo ancestral:
@@ -93,16 +93,17 @@ switch($oDados['tipo']) {
 
         // eu dei copiar e colar, pra ser mais rapido, são quase a mesma coisa
 
-        if(isset($oDados['consulta']) == true) {
+        if(isset($oDados['consulta'])) {
             $c = $oDados['consulta'];
 
-            if(gettype($c) != "array" || gettype($c) != "object" && $c != '' || !empty($c)) {
+            if(gettype($c) != "array" || gettype($c) != "object" && $c != '') {
 
-                $cSQL = "SELECT PRDNOME 'NOME', PRDDESCRICAO, CRPVLRUNIT 'VALOR' FROM produtos INNER JOIN carrinho_produtos ON CRPPRODUTO = PRDID INNER JOIN carrinho ON CRPCARRINHO = (SELECT CARID WHERE CARCLIENTE = " . $oDados['consulta'] . ") WHERE 1=1 "; //Pra q where 1=1?
+                $cSQL = "SELECT PRDNOME 'NOME', PRDDESCRICAO, CRPVLRUNIT 'VALOR' FROM produtos INNER JOIN carrinho_produtos ON CRPPRODUTO = PRDID INNER JOIN carrinho ON CRPCARRINHO = (SELECT CARID WHERE CARCLIENTE = " . $oDados['consulta'] . ") WHERE 1=1 ";
 
                 // pra na hora daqui embaixo (desce um pouco a cam)
             }
-        }else {
+        }
+        else {
             // NESSA PARTE, por ser usaod mais em relatorios, eu vou colocar algumas informações add
             // como nome do usuario? Eu n sei se é necessario. Na duvida é so mais um join memo
 
@@ -139,6 +140,49 @@ switch($oDados['tipo']) {
 
         echo json_encode($oRes);
     break;
+
+    case 'adicionar_carrinho':
+        if(isset($oDados['consulta'])) {
+            $c = $oDados['consulta'];
+            $carrinho = $c['carrinho'];
+            $produto = $c['produto'];
+            $quantia = $c['quantia'];
+            $valor = $c['valor'];
+
+            $sql = "SELECT * FROM carrinho_produtos WHERE CRPPRODUTO = '$produto'";
+            $oRes = mysqli_query($oCon, $sql);
+
+            if(mysqli_num_rows($oRes) > 0) {
+                $cSQL = "UPDATE carrinho_produtos SET CRPQUANT = CRPQUANT + 1 WHERE CRPPRODUTO  = $produto";
+            }
+            else {
+                $cSQL = "INSERT INTO carrinho_produtos(CRPCARRINHO, CRPPRODUTO, CRPQUANT, CRPVLRUNIT) VALUES('$carrinho', '$produto', '$quantia', '$valor')";
+            }
+        }
+
+        $oRes = mysqli_query($oCon, $cSQL);
+    break;
+
+    case 'remover_carrinho':
+        if(isset($oDados['consulta'])) {
+            $carrinho = $oDados['consulta']['carrinho'];
+            $produto = $oDados['consulta']['produto'];
+
+            $sql = "SELECT CRPQUANT FROM carrinho_produtos WHERE CRPCARRINHO = '$carrinho' AND CRPPRODUTO = '$produto'";
+            $res = mysqli_query($oCon, $sql);
+            $row = $res->fetch_assoc();
+
+            if($row['CRPQUANT'] == 1) {
+                $sql = "DELETE FROM carrinho_produtos WHERE CRPCARRINHO = '$carrinho' AND CRPPRODUTO = '$produto'";
+                mysqli_query($oCon, $sql);
+            }
+            else {
+                $sql = "UPDATE carrinho_produtos SET CRPQUANT = CRPQUANT - 1 WHERE CRPCARRINHO = '$carrinho' AND CRPPRODUTO = '$produto'";
+                mysqli_query($oCon, $sql);
+            }
+        }
+    break;
+        
         
     case 'categoria':
         
@@ -524,7 +568,44 @@ switch($oDados['tipo']) {
         echo json_encode($oRes);
 
     break;
+    case 'endereco':
+        if(isset($oDados['consulta']) == true) {
+            $c = $oDados['consulta'];
 
+            if(gettype($c) != "array" || gettype($c) != "object" && $c != '' || !empty($c)) {
+                $sql = "SELECT ENDCLIENTE,
+                        ENDRUA,
+                        ENDNUMERO,
+                        ENDCOMPLEMENTO,
+                        ENDID,
+                        ENDCIDADE,
+                        ENDCEP FROM `enderecos`RIGHT JOIN usuarios ON ENDCLIENTE=USRID WHERE 1=1 AND USRID = $c ";
+            }
+        }else {
+            $sql = "SELECT ENDCLIENTE 'CLIENTE', ENDRUA 'RUA', ENDNUMERO 'NUMERO', ENDCOMPLEMENTO 'COMPLEMENTO', ENDCIDADE 'CIDADE', ENDCEP 'CEP' FROM enderecos INNER JOIN usuarios ON ENDCLIENTE = usuarios.USRID WHERE 1=1 ";  
+        }
+
+        if(isset($oDados['search'])) {
+
+            $q = $oDados['search'];
+            $sql .= "AND ENDCLIENTE LIKE $q
+            OR ENDRUA LIKE  $q
+            OR ENDNUMERO LIKE  $q
+            OR ENDCOMPLEMENTO LIKE  $q
+            OR ENDCIDADE LIKE  $q
+            OR ENDCEP LIKE  $q;";
+
+        }
+
+    
+
+        $oRes = mysqli_query($oCon, $sql);
+        
+        $oRes = mysqli_fetch_all($oRes, MYSQLI_ASSOC);
+
+        echo json_encode($oRes);
+
+    break;
     case 'movimento':
         $sql = "SELECT `MOVID`, 
         CASE 
