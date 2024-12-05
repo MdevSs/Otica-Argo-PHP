@@ -52,6 +52,45 @@ switch($oDados['tipo']) {
         echo json_encode($oRes);
     break;
 
+    case 'enderecos':
+
+        if(isset($oDados['consulta']) == true) {
+            $c = $oDados['consulta'];
+
+            if(gettype($c) != "array" || gettype($c) != "object" && $c != '' || !empty($c)) {
+                $sql = "SELECT ENDCLIENTE,
+                        ENDRUA,
+                        ENDNUMERO,
+                        ENDCOMPLEMENTO,
+                        ENDCIDADE,
+                        ENDCEP FROM `enderecos`RIGHT JOIN usuarios ON ENDCLIENTE=USRID WHERE 1=1 AND USRID = $c ";
+            }
+        }else {
+            $sql = "SELECT ENDCLIENTE 'CLIENTE', ENDRUA 'RUA', ENDNUMERO 'NUMERO', ENDCOMPLEMENTO 'COMPLEMENTO', ENDCIDADE 'CIDADE', ENDCEP 'CEP' FROM `enderecos` INNER JOIN usuarios ON ENDCLIENTE = usuarios.USRID WHERE 1=1 ";  
+        }
+
+        if(isset($oDados['search'])) {
+
+            $q = $oDados['search'];
+            $sql .= "AND ENDCLIENTE LIKE '%$q%'
+            OR ENDRUA LIKE  '%$q%'
+            OR ENDNUMERO LIKE  '%$q%'
+            OR ENDCOMPLEMENTO LIKE  '%$q%'
+            OR ENDCIDADE LIKE  '%$q%'
+            OR ENDCEP LIKE  '%$q%'";
+
+        }
+
+    
+
+        $oRes = mysqli_query($oCon, $sql);
+        
+        $oRes = mysqli_fetch_all($oRes, MYSQLI_ASSOC);
+
+        echo json_encode($oRes);
+
+    break;
+
     case 'home':
         $sql1 = "SELECT PRDID 'ID', PRDNOME 'NOME', PRDVLRUNIT 'VALOR', PRDVLRDESC 'DESCONTO', PRDIMAGE 'IMGPATH' FROM produtos WHERE PRDDESC = 1";
         $oRes = mysqli_query($oCon, $sql1);
@@ -351,13 +390,13 @@ switch($oDados['tipo']) {
 
             if(gettype($c) != "array" || gettype($c) != "object" && $c != '' || !empty($c)) {
 
-                $sql = "SELECT USRNOME, PRDNOME, SUPASSUNTO, SUPDESCR, IFNULL(SUPRESPOSTA, 'SEM RESPOSTA'), DATE_FORMAT(SUPDTABERTURA, '%d/%m/%Y'), IFNULL(DATE_FORMAT(SUPDATARESP, '%d/%m/%Y'), 'SEM RESPOSTA') FROM `SUPORTE` INNER JOIN USUARIOS ON USRID = SUPCLIENTE INNER JOIN PRODUTOS ON SUPPRODUTO = PRDID WHERE USRID = " . $c;
+                $sql = "SELECT SUPID, USRNOME, PRDNOME, SUPASSUNTO, SUPDESCR, IFNULL(SUPRESPOSTA, 'SEM RESPOSTA'), DATE_FORMAT(SUPDTABERTURA, '%d/%m/%Y'), IFNULL(DATE_FORMAT(SUPDATARESP, '%d/%m/%Y'), 'SEM RESPOSTA') FROM `SUPORTE` INNER JOIN USUARIOS ON USRID = SUPCLIENTE INNER JOIN PRODUTOS ON SUPPRODUTO = PRDID WHERE USRID = " . $c;
                 //A nao, n vi q o de baixo tbm tem funcoes. So falta o group bu memo? tenho quase certeza OMAGA. Okay ent, sussa
                 // na real, o GROUP BY são só para funções de grupo SUM, MIM , MAX, AVG
             }
         }else {
 
-                $sql = "SELECT USRNOME, PRDNOME, SUPASSUNTO, SUPDESCR, IFNULL(SUPRESPOSTA, 'SEM RESPOSTA'), DATE_FORMAT(SUPDTABERTURA, '%d/%m/%Y'), IFNULL(DATE_FORMAT(SUPDATARESP, '%d/%m/%Y'), 'SEM RESPOSTA') FROM `SUPORTE` INNER JOIN USUARIOS ON USRID = SUPCLIENTE INNER JOIN PRODUTOS ON SUPPRODUTO = PRDID WHERE 1=1 ";            
+                $sql = "SELECT SUPID, USRNOME, PRDNOME, SUPASSUNTO, SUPDESCR, IFNULL(SUPRESPOSTA, 'SEM RESPOSTA'), DATE_FORMAT(SUPDTABERTURA, '%d/%m/%Y'), IFNULL(DATE_FORMAT(SUPDATARESP, '%d/%m/%Y'), 'SEM RESPOSTA') FROM `SUPORTE` INNER JOIN USUARIOS ON USRID = SUPCLIENTE INNER JOIN PRODUTOS ON SUPPRODUTO = PRDID WHERE 1=1 ";            
 
         }
 
@@ -365,7 +404,7 @@ switch($oDados['tipo']) {
 
             $q = $oDados['search'];
             
-            $sql .= "AND USRNOME LIKE '%$q%' OR PRDNOME LIKE '%$q%' OR SUPDESCR LIKE '%$q%' OR SUPRESPOSTA LIKE '%$q%' OR SUPDTABERTURA LIKE '%$q%' OR SUPDATARESP LIKE '%$q%' OR USRID LIKE '%$q%' OR SUPCLIENTE LIKE '%$q%' OR SUPPRODUTO LIKE '%$q%' OR PRDID LIKE '%$q%'";
+            $sql .= "AND SUPID LIKE '%$q%' OR USRNOME LIKE '%$q%' OR PRDNOME LIKE '%$q%' OR SUPDESCR LIKE '%$q%' OR SUPRESPOSTA LIKE '%$q%' OR SUPDTABERTURA LIKE '%$q%' OR SUPDATARESP LIKE '%$q%' OR USRID LIKE '%$q%' OR SUPCLIENTE LIKE '%$q%' OR SUPPRODUTO LIKE '%$q%' OR PRDID LIKE '%$q%'";
             
         }
 
